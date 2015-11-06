@@ -8,12 +8,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+//#include "SNMP_jog.c"
 
 netsnmp_session session, *ss; // holds connection info.
 netsnmp_pdu *response; // holds info. that the remote host sends back
 
 int get_int_object(char *desc);
-void print_outgoing_stats(long new_val[], long old_val[], int if_size);
+void print_outgoing_stats(long new_val[], long old_val[], long kbs_poll[], int if_size);
 
 void init_session_monitor(netsnmp_session ses, netsnmp_session *sesp, netsnmp_pdu *rep){
     session = ses;
@@ -26,6 +27,7 @@ void monitor(int seconds, int samples){
     double elapsed;
     int ifNumber = get_int_object("ifNumber.0");
     long new_value[ifNumber], stored_value[ifNumber]; //compiler might not like
+    long kbs_poll[ifNumber]; 
 
     for (int i = 0; i < ifNumber; i++){
         new_value[i] = 0;
@@ -33,17 +35,20 @@ void monitor(int seconds, int samples){
     }
 
     for (int i = 0; i < samples; i++){
+        // For Devices
+        //printInter(); // Print information about the Agent's interfaaces
+
+        // For Statistics
         for (int j = 0; j < ifNumber; j++){
             char poll_device[] = "ifOutOctets.1";
-            poll_device[12] += i;
-            
-            new_value[i] = get_int_object(poll_device);
-            stored_value[i] = get_int_object(poll_device);
+            poll_device[12] += j;
 
-            double kbs_poll = (new_value[i] - stored_value[i])/1000; //kbs since last poll
+            new_value[j] = get_int_object(poll_device);
         }
 
-    print_outgoing_stats(new_value, stored_value, ifNumber);
+        print_outgoing_stats(new_value, stored_value, kbs_poll, ifNumber);
+
+        for (int j = 0; j < ifNumber; j++) stored_value[j] = new_value[j];
 
         // countdown clock for polling rate
         time(&start);
@@ -54,13 +59,13 @@ void monitor(int seconds, int samples){
     }
 } // monitor(char*[])
 
-void print_outgoing_stats(long new_val[], long old_val[], int if_size){
-    printf("\n|interface |    kilobytes/rate|");
+void print_outgoing_stats(long new_val[], long old_val[], long kbs_poll[], int if_size){
+    printf("\n|interface |        bytes/rate|");
     printf("\n|----------|------------------|");
 
     for (int i = 0; i < if_size; i++){
-        double kbs_poll = (new_val[i] - old_val[i])/1000; //kbs since last poll
-        printf("\n|%d        |                %d|", i+1, (int)kbs_poll);
+        kbs_poll[i] = new_val[i] - old_val[i];
+        printf("\n|%d        |                %ld|", i+1, kbs_poll[i]);
     }
     printf("\n");
 }

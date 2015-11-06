@@ -69,8 +69,6 @@ int main(int argc, char *argv[]){
 
   // a few tests on monitor.c
   monitor(seconds, samples);  
-  printf("\n\n lucky number %d \n", get_int_object("ifNumber.0"));
-  printf("\n\n lucky number %d \n", get_int_object("ifOutOctets.1"));
 
   // Close the Session
   snmp_close(ss); // (2)

@@ -12,7 +12,7 @@ DLFLAGS=-fPIC -shared
 all: $(TARGETS)
 
 monitor_tester:
-	$(CC) -g test_monitor.c $(BUILDLIBS) -o test_monitor
+	$(CC) -g test_monitor.c $(BUILDLIBS) -o SNMP_jog
 
 SNMP_jog:
 	$(CC) -g main.c $(BUILDLIBS) -o SNMP_jog 
